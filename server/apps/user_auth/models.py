@@ -33,8 +33,8 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         ]
     
 
-class InstitutionSubscription(models.Model):
-    User_model = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+class UserSubscription(models.Model):
+    user_model = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     subscription_type = models.CharField(max_length=100)
     subscription_ref= models.CharField(max_length=100)
     subcribed_at = models.DateTimeField(auto_now_add=False)

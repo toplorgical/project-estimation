@@ -1,5 +1,5 @@
 
-from .models import UserModel, InstitutionSubscription
+from .models import UserModel, UserSubscription
 from .serializers import UserModelSerializer
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.hashers import make_password, check_password
@@ -69,19 +69,16 @@ class UserRepository:
     def update_user(self, id, validated_data):
         """Update user information."""
         user = self.get_user(id)
-        user.institution_name = validated_data.get("institution_name", user.institution_name)
+        user.first_name = validated_data.get("first_name", user.first_name)
+        user.last_name = validated_data.get("first_name", user.last_name)
+        user.company_name = validated_data.get("company_name", user.company_name)
         user.is_active = validated_data.get("is_active", user.is_active)
         user.is_verified = validated_data.get("is_verified", user.is_verified)
-        user.registration_number = validated_data.get("registration_number", user.registration_number)
-        user.institution_type = validated_data.get("institution_type", user.institution_type)
-        user.role = validated_data.get("role", user.role)
         user.address = validated_data.get("address", user.address)
         user.phone = validated_data.get("phone", user.phone)
-        user.size = validated_data.get("size", user.size)
-        user.founded_year =validated_data.get("founded_year", user.founded_year)
-        user.reg_number = validated_data.get("reg_number", user.reg_number)
         user.save()
         return user
+
 
     def change_password(self, id, old_password, new_password):
         """Change user's password."""
@@ -101,8 +98,6 @@ class UserRepository:
         user.save()
         refresh = RefreshToken.for_user(user)
         refresh["id"] = user.id
-        refresh["email"] = user.email
-        refresh["institution_name"] = user.institution_name
         refresh["verification_code"] = None
         refresh["is_active"] = user.is_active
 
@@ -135,7 +130,7 @@ class UserRepository:
     def update_subscription(email, reference):
         """Update user subscription or create a new one."""
         try:
-            UserModel = UserModel.objects.get(email=email)
+            user_model = UserModel.objects.get(email=email)
             data = {
                 "UserModel": UserModel,
                 "subscription_type": "yearly",
@@ -144,10 +139,10 @@ class UserRepository:
                 "expired_at": timezone.now() + timedelta(days=365),
             }
 
-            InstitutionSubscription.objects.create(**data)
+            UserSubscription.objects.create(**data)
 
-            UserModel.active_subscription = True
-            UserModel.save(update_fields=["active_subscription"])
+            user_model.active_subscription = True
+            user_model.save(update_fields=["active_subscription"])
 
             return True
 
@@ -164,18 +159,18 @@ class UserRepository:
         and deactivates them (sets active_subscription = False).
         """
         try:
-            institutions = UserModel.objects.all()
+            users = UserModel.objects.all()
 
-            for UserModel in institutions:
-                subscription = InstitutionSubscription.objects.filter(
-                    UserModel=UserModel
+            for user_model in users:
+                subscription = UserSubscription.objects.filter(
+                    user_model=UserModel
                 ).order_by('-expired_at').first()
 
                 if not subscription or subscription.expired_at < datetime.now():
-                    if UserModel.active_subscription:
-                        UserModel.active_subscription = False
-                        UserModel.save(update_fields=["active_subscription"])
-                        print(f"[DEACTIVATED] {UserModel.email}")
+                    if user_model.active_subscription:
+                        user_model.active_subscription = False
+                        user_model.save(update_fields=["active_subscription"])
+                        print(f"[DEACTIVATED] {user_model.email}")
 
         except Exception as e:
             print(f"[ERROR] Failed to deactivate expired institutions: {str(e)}")
