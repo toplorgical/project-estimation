@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.prod
+    container_name: autocsat_server
+    command: gunicorn auto_csat.wsgi:application --bind 0.0.0.0:9500
+    ports:
+      - 9500:9500
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - autocsat-network
+      - nginx-proxy 
+      
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.prod
+    container_name: autocsat_client
+    restart: unless-stopped
+    ports:
+      - "4500:4500"
+    working_dir: /usr/src/app/client
+    depends_on:
+      - server
+    networks:
+      - autocsat-network
+      - nginx-proxy 
+
+  db:
+    image: postgres:14.12
+    volumes:
+      - autocsat_postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD?Variable not set}
+      - POSTGRES_USER=${DB_USER?Variable not set}
+      - POSTGRES_DB=${DB_NAME?Variable not set}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER?Variable not set}"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    networks:
+      - autocsat-network
+      - nginx-proxy 
+    env_file:
+      - ./.env
+volumes:
+  autocsat_postgres_data:
+
+networks:
+  autocsat-network:
+    driver: bridge
+  nginx-proxy:
+    external: true

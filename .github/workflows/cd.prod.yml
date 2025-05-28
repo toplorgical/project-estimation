@@ -1,0 +1,36 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "🚀 Pulling latest changes..."
+            cd /var/www/auto_csat_be
+            git pull
+
+            echo "🛑 Stopping running containers..."
+            docker-compose -f docker-compose.prod.yml down
+
+            echo "📦 Rebuilding and restarting containers..."
+            docker-compose -f docker-compose.prod.yml up -d --build
+
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+
+            echo "✅ Production deployment complete!"

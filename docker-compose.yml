@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    ports:
+      - "4500:4500"
+    working_dir: /usr/src/app/client
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./server:/usr/src/app/server
+    ports:
+      - 8000:8000
+    working_dir: /usr/src/app/server
+    env_file:
+      - ./server/.env
+    depends_on:
+      - db
+  db:
+    image: postgres:14.12
+    volumes:
+      - autocsat_postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD?Variable not set}
+      - POSTGRES_USER=${DB_USER?Variable not set}
+      - POSTGRES_DB=${DB_NAME?Variable not set}
+    env_file:
+      - ./.env
+
+volumes:
+  autocsat_postgres_data:
