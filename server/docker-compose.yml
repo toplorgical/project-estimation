@@ -1,0 +1,119 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: toplorgical
+      POSTGRES_USER: toplorgical
+      POSTGRES_PASSWORD: toplorgical123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toplorgical"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: toplorgical
+      MONGO_INITDB_ROOT_PASSWORD: toplorgical123
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DEBUG=True
+      - USE_SQLITE=False
+      - DB_NAME=toplorgical
+      - DB_USER=toplorgical
+      - DB_PASSWORD=toplorgical123
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - MONGODB_URL=mongodb://toplorgical:toplorgical123@mongodb:27017/
+      # Superuser values used by ensure_superuser (change in production)
+      - DJANGO_SUPERUSER_EMAIL=admin@local
+      - DJANGO_SUPERUSER_PASSWORD=admin123
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_FIRST_NAME=Admin
+      - DJANGO_SUPERUSER_LAST_NAME=User
+    command: python manage.py runserver 0.0.0.0:8000
+
+  celery:
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DEBUG=True
+      - USE_SQLITE=False
+      - DB_NAME=toplorgical
+      - DB_USER=toplorgical
+      - DB_PASSWORD=toplorgical123
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    command: celery -A toplorgical worker -l info
+
+  celery-beat:
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DEBUG=True
+      - USE_SQLITE=False
+      - DB_NAME=toplorgical
+      - DB_USER=toplorgical
+      - DB_PASSWORD=toplorgical123
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    command: celery -A toplorgical beat -l info
+
+  scrapy:
+    build: ./scrapy_service
+    volumes:
+      - ./scrapy_service:/app
+    depends_on:
+      - mongodb
+      - web
+    environment:
+      - MONGODB_URL=mongodb://toplorgical:toplorgical123@mongodb:27017/
+      - API_BASE_URL=http://web:8000/api/v1/
+    command: scrapy crawl materials
+
+volumes:
+  postgres_data:
+  mongodb_data:

@@ -1,33 +1,35 @@
-# pull official base image
-FROM python:3.11.4-slim-buster
+FROM python:3.11-slim
 
-# set work directory
-WORKDIR /usr/src/app/server
+WORKDIR /app
 
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# install system dependencies
-RUN apt-get update && apt-get install -y netcat
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --upgrade pip
-RUN pip install flake8==6.0.0
-COPY . /usr/src/app/server
-# RUN flake8 --ignore=E501,F401 .
-
-# install dependencies
-RUN pip install --upgrade pip
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
-
-# copy entrypoint.sh
-COPY ./entrypoint.sh .
-RUN sed -i 's/\r$//g' ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
-
-# copy project
+# Copy project files
 COPY . .
 
-# run entrypoint.sh
-ENTRYPOINT ["./entrypoint.sh"]
+# Install entrypoint into a path not overridden by bind mounts
+USER root
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh && sed -i 's/\r$//' /usr/local/bin/entrypoint.sh || true
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 8000
+
+# Entrypoint to run init tasks, then default command
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Default command (passed to entrypoint)
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "toplorgical.wsgi:application"]

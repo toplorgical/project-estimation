@@ -1,17 +1,8 @@
 #!/bin/sh
+set -e
 
-if [ "$DATABASE" = "postgres" ]
-then
-    echo "Waiting for postgres..."
+# Initialize app (migrate, ensure superuser, seed sample data once)
+python manage.py init_app
 
-    while ! nc -z $SQL_HOST $SQL_PORT; do
-      sleep 0.1
-    done
-
-    echo "PostgreSQL started"
-fi
-
-# python manage.py flush --no-input
-python manage.py migrate
-
+# Execute the main process (gunicorn by default via CMD)
 exec "$@"

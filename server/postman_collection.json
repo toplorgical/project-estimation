@@ -1,0 +1,2917 @@
+{
+  "info": {
+    "name": "Toplorgical API",
+    "description": "Complete API collection for Toplorgical construction estimation platform",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-refresh token if needed",
+          "if (pm.globals.get('token_expires_at') && new Date() > new Date(pm.globals.get('token_expires_at'))) {",
+          "    pm.sendRequest({",
+          "        url: pm.globals.get('base_url') + '/api/v1/auth/refresh/',",
+          "        method: 'POST',",
+          "        header: {",
+          "            'Content-Type': 'application/json',",
+          "        },",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({",
+          "                refresh: pm.globals.get('refresh_token')",
+          "            })",
+          "        }",
+          "    }, function (err, response) {",
+          "        if (response.code === 200) {",
+          "            const data = response.json();",
+          "            pm.globals.set('access_token', data.access);",
+          "            pm.globals.set('token_expires_at', new Date(Date.now() + 60 * 60 * 1000));",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "estimate_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "material_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "machinery_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "export_job_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitation_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "comment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('User registration successful', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('access_token', response.access);",
+                  "    pm.globals.set('refresh_token', response.refresh);",
+                  "    pm.globals.set('user_id', response.user.id);",
+                  "    pm.globals.set('token_expires_at', new Date(Date.now() + 60 * 60 * 1000));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"username\": \"testuser\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"company\": \"Test Company\",\n    \"phone\": \"+44 123 456 7890\",\n    \"password\": \"TestPassword123!\",\n    \"password_confirm\": \"TestPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register", ""]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('access_token', response.access);",
+                  "    pm.globals.set('refresh_token', response.refresh);",
+                  "    pm.globals.set('user_id', response.user.id);",
+                  "    pm.globals.set('token_expires_at', new Date(Date.now() + 60 * 60 * 1000));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"TestPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login", ""]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Profile retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Profile contains user data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('email');",
+                  "    pm.expect(response).to.have.property('first_name');",
+                  "    pm.expect(response).to.have.property('last_name');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/profile/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "profile", ""]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Password changed successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"old_password\": \"TestPassword123!\",\n    \"new_password\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/change-password/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "change-password", ""]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Token refresh successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('access_token', response.access);",
+                  "    pm.globals.set('token_expires_at', new Date(Date.now() + 60 * 60 * 1000));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh", ""]
+            }
+          }
+        },
+        {
+          "name": "Logout User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Logout successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Clear tokens",
+                  "pm.globals.unset('access_token');",
+                  "pm.globals.unset('refresh_token');",
+                  "pm.globals.unset('token_expires_at');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "Create Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Project created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('project_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Sample Residential Project\",\n    \"description\": \"A 3-bedroom house construction project\",\n    \"project_type\": \"residential\",\n    \"address\": \"123 Main Street\",\n    \"city\": \"London\",\n    \"postcode\": \"SW1A 1AA\",\n    \"country\": \"United Kingdom\",\n    \"total_area\": 150.5,\n    \"floors\": 2,\n    \"start_date\": \"2024-01-15\",\n    \"end_date\": \"2024-06-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", ""]
+            }
+          }
+        },
+        {
+          "name": "List Projects",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Projects retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains results', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Project Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Project details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Project contains required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('name');",
+                  "    pm.expect(response).to.have.property('project_type');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Project updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Sample Residential Project\",\n    \"description\": \"An updated 3-bedroom house construction project\",\n    \"project_type\": \"residential\",\n    \"address\": \"123 Main Street\",\n    \"city\": \"London\",\n    \"postcode\": \"SW1A 1AA\",\n    \"country\": \"United Kingdom\",\n    \"total_area\": 160.0,\n    \"floors\": 2,\n    \"status\": \"active\",\n    \"start_date\": \"2024-01-15\",\n    \"end_date\": \"2024-06-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Project deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Invite Collaborator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Collaborator invited successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"collaborator@example.com\",\n    \"role\": \"editor\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/invite/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", "invite", ""]
+            }
+          }
+        },
+        {
+          "name": "List Collaborators",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Collaborators retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/collaborators/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "projects",
+                "{{project_id}}",
+                "collaborators",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Collaborator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Collaborator removed successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/collaborators/{{user_id}}/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "projects",
+                "{{project_id}}",
+                "collaborators",
+                "{{user_id}}",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Materials",
+      "item": [
+        {
+          "name": "List Materials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Materials retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains results', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/materials/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "materials", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Material Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Material details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Material contains required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('name');",
+                  "    pm.expect(response).to.have.property('category');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/materials/{{material_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "materials", "{{material_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Search Materials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Material search successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search results contain materials', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"query\": \"concrete\",\n    \"location\": \"London\",\n    \"max_price\": 100,\n    \"ordering\": \"name\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/materials/search/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "materials", "search", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Material Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Categories retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/materials/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "materials", "categories", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Material Suggestions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Suggestions retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains suggestions', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('suggestions');",
+                  "    pm.expect(response.suggestions).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/materials/suggestions/?project_type=residential&area=150",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "materials", "suggestions", ""],
+              "query": [
+                {
+                  "key": "project_type",
+                  "value": "residential"
+                },
+                {
+                  "key": "area",
+                  "value": "150"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Machinery",
+      "item": [
+        {
+          "name": "List Machinery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Machinery retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains results', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/machinery/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "machinery", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Machinery Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Machinery details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Machinery contains required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('name');",
+                  "    pm.expect(response).to.have.property('category');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/machinery/{{machinery_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "machinery", "{{machinery_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Search Machinery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Machinery search successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search results contain machinery', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"query\": \"excavator\",\n    \"location\": \"London\",\n    \"rental_type\": \"daily\",\n    \"max_price\": 500\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/machinery/search/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "machinery", "search", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Machinery Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Categories retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/machinery/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "machinery", "categories", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Machinery Suggestions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Suggestions retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains suggestions', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('suggestions');",
+                  "    pm.expect(response.suggestions).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/machinery/suggestions/?project_type=residential&area=150",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "machinery", "suggestions", ""],
+              "query": [
+                {
+                  "key": "project_type",
+                  "value": "residential"
+                },
+                {
+                  "key": "area",
+                  "value": "150"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Machinery Availability",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Availability check successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains availability data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('available');",
+                  "    pm.expect(response).to.have.property('next_available_date');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"machinery_id\": {{machinery_id}},\n    \"start_date\": \"2024-03-01\",\n    \"end_date\": \"2024-03-15\",\n    \"location\": \"London\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/machinery/availability/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "machinery", "availability", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pricing",
+      "item": [
+        {
+          "name": "Get Suppliers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Suppliers retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains supplier data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/suppliers/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "suppliers", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Price Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price data retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains price data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/data/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "data", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Real-time Pricing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pricing data retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains pricing data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('pricing');",
+                  "    pm.expect(response.pricing).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/realtime/?items=1,2,3&location=London",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "realtime", ""],
+              "query": [
+                {
+                  "key": "items",
+                  "value": "1,2,3"
+                },
+                {
+                  "key": "location",
+                  "value": "London"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Material Price History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price history retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains price history', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('price_history');",
+                  "    pm.expect(response.price_history).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/materials/1/history/?days=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "materials", "1", "history", ""],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Machinery Price History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price history retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains price history', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('price_history');",
+                  "    pm.expect(response.price_history).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/machinery/1/history/?days=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "machinery", "1", "history", ""],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Price Trends",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price trends retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains trend data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('trends');",
+                  "    pm.expect(response.trends).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/trends/?category=concrete&location=London&period=monthly",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "trends", ""],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "concrete"
+                },
+                {
+                  "key": "location",
+                  "value": "London"
+                },
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Price Alert",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price alert created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains alert data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('item_type');",
+                  "    pm.expect(response).to.have.property('threshold_price');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"item_type\": \"material\",\n    \"item_id\": 1,\n    \"threshold_price\": 25.00,\n    \"condition\": \"below\",\n    \"location\": \"London\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/alerts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "alerts", ""]
+            }
+          }
+        },
+        {
+          "name": "List Price Alerts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price alerts retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains alerts', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/alerts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "alerts", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Price Alert",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price alert deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/alerts/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "alerts", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Submit Scraped Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Scraped data submitted successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"supplier\": \"BuildMart\",\n    \"item_type\": \"material\",\n    \"item_id\": 1,\n    \"price\": 28.50,\n    \"currency\": \"GBP\",\n    \"location\": \"London\",\n    \"scraped_at\": \"2024-03-01T10:00:00Z\",\n    \"source_url\": \"https://buildmart.co.uk/concrete\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/pricing/scraped-data/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pricing", "scraped-data", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Estimates",
+      "item": [
+        {
+          "name": "Create Estimate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estimate created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('estimate_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"project\": {{project_id}},\n    \"name\": \"Initial Estimate\",\n    \"description\": \"Initial cost estimate for the project\",\n    \"materials\": [\n        {\n            \"material_id\": 1,\n            \"quantity\": 100,\n            \"unit_price\": 25.50,\n            \"waste_factor\": 0.15\n        },\n        {\n            \"material_id\": 2,\n            \"quantity\": 50,\n            \"unit_price\": 15.75,\n            \"waste_factor\": 0.10\n        }\n    ],\n    \"machinery\": [\n        {\n            \"machinery_id\": 1,\n            \"rental_type\": \"weekly\",\n            \"duration\": 4,\n            \"unit_price\": 350.00,\n            \"transport_cost\": 50.00\n        }\n    ],\n    \"labor_cost\": 5000.00,\n    \"overhead_cost\": 1000.00\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "estimates", ""]
+            }
+          }
+        },
+        {
+          "name": "List Estimates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estimates retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains results', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "estimates", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Estimate Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estimate details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Estimate contains cost breakdown', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('materials_cost');",
+                  "    pm.expect(response).to.have.property('labor_cost');",
+                  "    pm.expect(response).to.have.property('machinery_cost');",
+                  "    pm.expect(response).to.have.property('total_cost');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/{{estimate_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "estimates", "{{estimate_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Estimate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estimate updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Estimate\",\n    \"description\": \"Updated cost estimate for the project\",\n    \"labor_cost\": 5500.00,\n    \"overhead_cost\": 1200.00\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/{{estimate_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "estimates", "{{estimate_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Estimate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estimate deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/{{estimate_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "estimates", "{{estimate_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Generate Estimate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estimate generated successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('estimate_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"project_id\": {{project_id}},\n    \"name\": \"Auto Generated Estimate\",\n    \"description\": \"Automatically generated cost estimate\",\n    \"use_ai_suggestions\": true,\n    \"include_contingency\": true,\n    \"contingency_percentage\": 10.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/generate/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "estimates", "generate", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Estimate Substitutions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Substitutions retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains substitutions', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('substitutions');",
+                  "    pm.expect(response.substitutions).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/{{estimate_id}}/substitutions/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "estimates",
+                "{{estimate_id}}",
+                "substitutions",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Apply Substitution",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Substitution applied successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains updated estimate', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('estimate');",
+                  "    pm.expect(response).to.have.property('savings');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"apply_substitution\": true,\n    \"notes\": \"Applied cost-effective substitution\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/{{estimate_id}}/substitutions/1/apply/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "estimates",
+                "{{estimate_id}}",
+                "substitutions",
+                "1",
+                "apply",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Optimize Estimate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estimate optimization successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains optimized estimate', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('original_cost');",
+                  "    pm.expect(response).to.have.property('optimized_cost');",
+                  "    pm.expect(response).to.have.property('savings');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"optimization_type\": \"cost\",\n    \"max_substitutions\": 5,\n    \"location\": \"London\",\n    \"quality_threshold\": \"standard\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/estimates/{{estimate_id}}/optimize/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "estimates",
+                "{{estimate_id}}",
+                "optimize",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exports",
+      "item": [
+        {
+          "name": "List Export Jobs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Export jobs retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains results', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/jobs/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "exports", "jobs", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Export Job Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Export job details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Job contains required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('status');",
+                  "    pm.expect(response).to.have.property('export_type');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/jobs/{{export_job_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "exports", "jobs", "{{export_job_id}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Export Job",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Export job created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('export_job_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"export_type\": \"project_pdf\",\n    \"project_id\": {{project_id}},\n    \"include_estimates\": true,\n    \"include_materials\": true,\n    \"include_machinery\": true,\n    \"format\": \"detailed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/create/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "exports", "create", ""]
+            }
+          }
+        },
+        {
+          "name": "Download Export",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Export downloaded successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is a file', function () {",
+                  "    const contentType = pm.response.headers.get('Content-Type');",
+                  "    pm.expect(contentType).to.satisfy(function(type) {",
+                  "        return type.includes('application/pdf') || type.includes('application/vnd.openxmlformats');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/jobs/{{export_job_id}}/download/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "exports",
+                "jobs",
+                "{{export_job_id}}",
+                "download",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Export Job",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Export job cancelled successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response confirms cancellation', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('status');",
+                  "    pm.expect(response.status).to.equal('cancelled');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/jobs/{{export_job_id}}/cancel/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "exports",
+                "jobs",
+                "{{export_job_id}}",
+                "cancel",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Project to PDF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('PDF export successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is PDF', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.contain('application/pdf');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/projects/{{project_id}}/pdf/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "exports",
+                "projects",
+                "{{project_id}}",
+                "pdf",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Estimate to PDF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('PDF export successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is PDF', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.contain('application/pdf');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/estimates/{{estimate_id}}/pdf/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "exports",
+                "estimates",
+                "{{estimate_id}}",
+                "pdf",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Estimate to Excel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Excel export successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is Excel', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.contain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/estimates/{{estimate_id}}/excel/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "exports",
+                "estimates",
+                "{{estimate_id}}",
+                "excel",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collaboration",
+      "item": [
+        {
+          "name": "List Project Invitations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invitations retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains results', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/invitations/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collaboration", "invitations", ""]
+            }
+          }
+        },
+        {
+          "name": "Send Project Invitation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invitation sent successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('invitation_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"project_id\": {{project_id}},\n    \"email\": \"collaborator@example.com\",\n    \"role\": \"editor\",\n    \"message\": \"Please join this construction project as a collaborator\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/invitations/send/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collaboration", "invitations", "send", ""]
+            }
+          }
+        },
+        {
+          "name": "Respond to Invitation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invitation response successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains result', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('status');",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"invitation_id\": {{invitation_id}},\n    \"response\": \"accepted\",\n    \"message\": \"Happy to collaborate on this project\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/invitations/respond/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "invitations",
+                "respond",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Project Activity Log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Activity log retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains activities', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/activity/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "activity",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Project Comments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comments retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains comments', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/comments/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "comments",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Project Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comment created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.globals.set('comment_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"This estimate looks good, but we might want to consider alternative materials for cost savings.\",\n    \"comment_type\": \"general\",\n    \"priority\": \"normal\",\n    \"tags\": [\"cost-optimization\", \"materials\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/comments/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "comments",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Comment Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comment details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Comment contains required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('content');",
+                  "    pm.expect(response).to.have.property('author');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/comments/{{comment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "comments",
+                "{{comment_id}}",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comment updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"Updated comment: This estimate looks good, and I've reviewed the alternative materials. The current selection seems optimal.\",\n    \"priority\": \"low\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/comments/{{comment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "comments",
+                "{{comment_id}}",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comment deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/comments/{{comment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "comments",
+                "{{comment_id}}",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reply to Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Reply created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"I agree with your assessment. Let's proceed with the current material selection.\",\n    \"comment_type\": \"reply\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/comments/{{comment_id}}/reply/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "comments",
+                "{{comment_id}}",
+                "reply",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Resolve Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comment resolved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Comment is marked as resolved', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('is_resolved');",
+                  "    pm.expect(response.is_resolved).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"resolution_note\": \"Issue resolved - current material selection approved by all stakeholders\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/projects/{{project_id}}/comments/{{comment_id}}/resolve/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "projects",
+                "{{project_id}}",
+                "comments",
+                "{{comment_id}}",
+                "resolve",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Notifications retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains notifications', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/notifications/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "collaboration", "notifications", ""]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Notification marked as read successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Notification is marked as read', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('is_read');",
+                  "    pm.expect(response.is_read).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/notifications/{{notification_id}}/read/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "notifications",
+                "{{notification_id}}",
+                "read",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('All notifications marked as read successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response confirms action', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "    pm.expect(response.message).to.contain('marked as read');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/collaboration/notifications/read-all/",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "collaboration",
+                "notifications",
+                "read-all",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "List Subscription Plans",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Subscription plans retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains plans', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/plans/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "plans", ""]
+            }
+          }
+        },
+        {
+          "name": "Get User Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Subscription details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains subscription info', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('status');",
+                  "    pm.expect(response).to.have.property('plan');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/subscription/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "subscription", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Subscription created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains subscription data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('subscription_id');",
+                  "    pm.expect(response).to.have.property('client_secret');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"plan_type\": \"pro\",\n    \"payment_method_id\": \"pm_card_visa\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/create-subscription/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "create-subscription", ""]
+            }
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Subscription cancelled successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response confirms cancellation', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "    pm.expect(response.message).to.contain('cancelled');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cancel_at_period_end\": true,\n    \"reason\": \"Switching to different plan\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/cancel-subscription/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "cancel-subscription", ""]
+            }
+          }
+        },
+        {
+          "name": "List Payment Methods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Payment methods retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains payment methods', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/payment-methods/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "payment-methods", ""]
+            }
+          }
+        },
+        {
+          "name": "List Invoices",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invoices retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains invoices', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/invoices/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "invoices", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Subscription created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains subscription data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('subscription_id');",
+                  "    pm.expect(response).to.have.property('client_secret');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"plan_type\": \"pro\",\n    \"payment_method_id\": \"pm_card_visa\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/create-subscription/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "create-subscription", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Subscription details retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains subscription info', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('status');",
+                  "    pm.expect(response).to.have.property('current_period_end');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/subscription/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "subscription", ""]
+            }
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Subscription cancelled successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response confirms cancellation', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "    pm.expect(response.message).to.contain('cancelled');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cancel_at_period_end\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/cancel-subscription/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "cancel-subscription", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('System is healthy', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains health status', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('status');",
+                  "    pm.expect(response.status).to.equal('healthy');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health/",
+              "host": ["{{base_url}}"],
+              "path": ["health", ""]
+            }
+          }
+        },
+        {
+          "name": "API Documentation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('API documentation accessible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/docs/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "docs", ""]
+            }
+          }
+        },
+        {
+          "name": "API Schema",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('API schema accessible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON schema', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.contain('application/json');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/schema/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schema", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

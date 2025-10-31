@@ -1,430 +1,381 @@
-Project Cost Estimation Application - Comprehensive User Guide
-This guide explains how to use all functionalities of the Project Cost Estimation application, which combines machine learning and web scraping to provide accurate cost estimates for projects across various sectors.
+# Toplorgical Backend
 
-Table of Contents
-System Overview
+AI-powered construction estimation platform backend built with Django REST Framework and Scrapy.
 
-Setting Up Projects
+## Features
 
-Adding Project Resources
+- **Django REST API Backend** with JWT authentication
+- **Multi-app architecture** for scalability
+- **Scrapy-based web scraping** for UK suppliers
+- **Real-time cost estimation** with rule-based logic
+- **Stripe integration** for subscription management
+- **Export functionality** (PDF/Excel)
+- **Team collaboration** features
+- **Docker containerization** for easy deployment
 
-Adding Labor Requirements
+## Architecture
 
-Cost Estimation Methods
+### Django Apps
 
-Market Price Updates
+1. **authentication** - User management and JWT auth
+2. **projects** - Project CRUD and management
+3. **materials** - Material catalog and pricing
+4. **machinery** - Equipment catalog and pricing
+5. **pricing** - Price tracking and real-time updates
+6. **estimates** - Cost estimation engine
+7. **exports** - PDF/Excel generation
+8. **collaboration** - Team management
+9. **payments** - Stripe integration
 
-Model Training
+### Scrapy Service
 
-API Endpoints
+- **Target suppliers**: Travis Perkins, Wickes, Screwfix, Toolstation, B&Q, Homebase, Buildbase, Jewson, Selco
+- **Data collection**: Materials, machinery, pricing, availability
+- **Scheduling**: Daily price updates, weekly catalog refresh
+- **Data pipeline**: MongoDB → Django API → PostgreSQL
 
-Admin Functions
+## Quick Start
 
-Best Practices
+### One-step init (simple setup)
 
-System Overview
-The application provides three main approaches to cost estimation:
+This backend auto-initializes on start: it runs migrations, ensures a superuser, and seeds sample data once.
 
-Machine Learning (ML) Estimation:
+- Local dev (Windows):
 
-Uses historical project data to predict costs based on sector, type, and location
+```powershell
+cd server
+./scripts/dev_start.ps1 -Email admin@local -Password admin123 -UseSqlite
+```
 
-Becomes more accurate as more projects are completed
+- Docker:
 
-Provides confidence scores for predictions
+```powershell
+cd server
+docker compose up --build
+```
 
-Web Scraping Estimation:
+The first start will:
 
-Fetches current market prices for materials and labor
+- Create superuser from env vars (defaults: admin@local / admin123)
+- Populate sample suppliers, materials, machinery, and price data once
 
-Updates project costs with real-time data
+You can customize the superuser by setting these env vars (compose already sets sensible defaults):
 
-Supports multiple sectors (construction, IT, etc.)
+```
+DJANGO_SUPERUSER_EMAIL
+DJANGO_SUPERUSER_PASSWORD
+DJANGO_SUPERUSER_USERNAME
+DJANGO_SUPERUSER_FIRST_NAME
+DJANGO_SUPERUSER_LAST_NAME
+```
 
-Manual Estimation:
+### Prerequisites
 
-Allows users to input costs directly
+- Python 3.11+
+- Docker and Docker Compose
+- PostgreSQL 15+
+- Redis 7+
+- MongoDB 7+
 
-Serves as fallback when automated methods aren't available
+### Installation
 
-Setting Up Projects
-Creating a New Project
-Basic Information:
+1. Clone the repository:
 
-Navigate to "Projects" → "Create New Project"
+```bash
+git clone <repository-url>
+cd toplorgical-backend
+```
 
-Fill in:
+2. Copy environment variables:
 
-Report name (e.g., "Downtown Office Building")
+```bash
+cp .env.example .env
+```
 
-Project type (e.g., "Commercial Construction")
+3. Update `.env` with your configuration:
 
-Location (e.g., "New York, NY")
+```bash
+# Update database credentials, API keys, etc.
+```
 
-Sector (select from dropdown)
+4. Start services with Docker Compose:
 
-Status (defaults to "Pending")
+```bash
+docker-compose up -d
+```
 
-Sector Selection:
+5. Run migrations:
 
-Choose the most relevant sector (critical for accurate estimation)
+```bash
+docker-compose exec web python manage.py migrate
+```
 
-Common sectors include:
+6. Create superuser:
 
-Construction/Building
+```bash
+docker-compose exec web python manage.py createsuperuser
+```
 
-Software/IT
+7. Load sample data:
 
-Manufacturing
+```bash
+docker-compose exec web python manage.py loaddata fixtures/sample_data.json
+```
 
-Infrastructure
+### Development Setup
 
-Initial Save:
+1. Create virtual environment:
 
-Save the project to create its record
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-You can now add resources and labor details
+2. Install dependencies:
 
-Adding Project Resources
-For Construction Projects
-Navigate to "Resources" tab in your project
+```bash
+pip install -r requirements.txt
+```
 
-Click "Add Resource"
+3. Run migrations:
 
-Fill in:
+```bash
+python manage.py migrate
+```
 
-Resource Type (e.g., "Building Materials")
+4. Start development server:
 
-Resource Name (e.g., "Concrete 3000psi")
+```bash
+python manage.py runserver
+```
 
-Quantity (e.g., 500)
+## API Documentation
 
-Unit (e.g., "cubic yards")
+### Authentication Endpoints
 
-Unit Cost (your estimated cost)
+- `POST /api/auth/register/` - User registration
+- `POST /api/auth/login/` - User login
+- `POST /api/auth/refresh/` - Refresh JWT token
+- `POST /api/auth/logout/` - User logout
+- `GET /api/auth/profile/` - User profile
 
-Save - the system will later try to find current market prices
+### Project Management
 
-For IT/Software Projects
-Add resources like:
+- `GET /api/projects/` - List projects
+- `POST /api/projects/` - Create project
+- `GET /api/projects/{id}/` - Project details
+- `PUT /api/projects/{id}/` - Update project
+- `DELETE /api/projects/{id}/` - Delete project
 
-"Cloud Services" - AWS/GCP instances
+### Materials & Machinery
 
-"Software Licenses" - Commercial software
+- `GET /api/materials/` - List materials
+- `GET /api/materials/search/` - Search materials
+- `GET /api/machinery/` - List machinery
+- `GET /api/machinery/search/` - Search machinery
 
-"Third-party APIs" - External services
+### Pricing
 
-Adding Labor Requirements
-Navigate to "Labor" tab in your project
+- `GET /api/pricing/materials/{id}/history/` - Price history
+- `GET /api/pricing/realtime/` - Real-time pricing
 
-Click "Add Labor"
+### Estimates
 
-Specify:
+- `POST /api/estimates/generate/` - Generate estimate
+- `GET /api/estimates/{id}/` - Estimate details
+- `GET /api/estimates/{id}/substitutions/` - Alternative suggestions
 
-Labor Type (Skilled/Unskilled/Supervisor)
+### Interactive Documentation
 
-Quantity (number of workers)
+Visit `http://localhost:8000/api/docs/` for Swagger UI documentation.
 
-Daily Rate (your estimated rate)
+## Estimation Engine
 
-Days Required (duration)
+### Rule-Based Calculations
 
-The system will attempt to find current market rates for:
+1. **Material Calculations**:
 
-Construction workers
+   - Quantity = Area × Thickness × Waste Factor (10-15%)
+   - Regional adjustments based on location multipliers
 
-Software developers
+2. **Labor Estimation**:
 
-Project managers
+   - Hours = Base Hours × Complexity × Location Factor
 
-Other relevant roles
+3. **Equipment Costs**:
 
-Cost Estimation Methods
-Automatic Estimation (Recommended)
-Navigate to project detail page
+   - Rental Rate × Duration + Transport + Setup
 
-Click "Estimate Cost" button
+4. **Substitution Logic**:
+   - Price threshold triggers alternative suggestions
+   - Ranked by cost savings and availability
 
-System will:
+### Location Multipliers
 
-First try ML estimation
+- London: 1.3x
+- Manchester: 1.1x
+- Birmingham: 1.05x
+- Scotland: 0.9x
+- Wales: 0.95x
 
-If low confidence (<70%), try web scraping
+## Scrapy Configuration
 
-Show which method was used
+### Spiders
 
-Display confidence percentage
+- `materials` - General materials spider
+- `travis_perkins_materials` - Travis Perkins specific
+- `wickes_materials` - Wickes specific
+- `screwfix_materials` - Screwfix specific
 
-Force Specific Method
-Use the API endpoint with method parameter:
+### Running Scrapers
 
-ml - Force machine learning
+```bash
+# Run all material scrapers
+docker-compose exec scrapy scrapy crawl materials
 
-scraping - Force web scraping
+# Run specific supplier
+docker-compose exec scrapy scrapy crawl travis_perkins_materials
 
-manual - Use only entered costs
+# Schedule daily runs
+docker-compose exec scrapy scrapy crawl materials -s JOBDIR=crawls/materials-1
+```
 
-Viewing Estimates
-Estimated cost appears on project dashboard
+## Database Schema
 
-Breakdown available in "Estimation Details":
+### Core Models
 
-Method used
+- **User** - Extended Django user with subscription info
+- **Project** - Construction project details
+- **Material** - Material catalog with specifications
+- **Machinery** - Equipment catalog with specifications
+- **PriceData** - Current and historical pricing
+- **Estimate** - Cost estimates with breakdowns
 
-Confidence score
+### Key Relationships
 
-Resource-by-resource costs
+- Projects have many Estimates
+- Estimates have many MaterialItems and MachineryItems
+- PriceData links to Materials/Machinery and Suppliers
+- Users can collaborate on Projects
 
-Labor costs
+## Testing
 
-Market Price Updates
-Manual Update
-On project page, click "Update Market Prices"
+### Run Tests
 
-System will:
+```bash
+# Run all tests
+docker-compose exec web python manage.py test
 
-Scrape current prices for all resources
+# Run with coverage
+docker-compose exec web pytest --cov=. --cov-report=html
 
-Find current labor rates
+# Run specific app tests
+docker-compose exec web python manage.py test authentication
+```
 
-Update all costs
+### Test Categories
 
-Recalculate total estimate
+- **Unit Tests** - Model and utility testing
+- **Integration Tests** - API endpoint testing
+- **Scrapy Tests** - Spider functionality testing
+- **End-to-End Tests** - Complete workflow testing
 
-Automatic Updates
-Configured to run daily at 5 AM
+## Deployment
 
-Updates all active ("In Progress") projects
+### Production Setup
 
-Can be adjusted in Celery beat schedule
+1. Update environment variables for production:
 
-Price Sources
-Construction: HomeAdvisor, local supplier sites
+```bash
+DEBUG=False
+ALLOWED_HOSTS=your-domain.com
+SECRET_KEY=your-production-secret-key
+```
 
-IT Services: Upwork, Glassdoor
+2. Configure SSL certificates
+3. Set up proper database backups
+4. Configure monitoring and logging
 
-Manufacturing: Industry-specific sources
+### Docker Production Build
 
-View sources in:
+```bash
+# Build production image
+docker build -t toplorgical-backend:latest .
 
-Resource "Price Source" field
+# Run with production settings
+docker run -d \
+  --name toplorgical-backend \
+  -p 8000:8000 \
+  -e DEBUG=False \
+  -e DATABASE_URL=postgres://user:pass@db:5433/toplorgical \
+  toplorgical-backend:latest
+```
 
-Labor "Rate Source" field
+## Monitoring
 
-Model Training
-Automatic Training
-Runs weekly (Sunday 3 AM)
+### Health Checks
 
-Uses all completed projects with actual costs
+- `GET /health/` - Application health
+- `GET /health/db/` - Database connectivity
+- `GET /health/redis/` - Redis connectivity
 
-Only trains if sufficient new data exists
+### Logging
 
-Manual Training
-Navigate to Admin → Model Training
+- Application logs: `logs/django.log`
+- Scrapy logs: `scrapy_service/logs/`
+- Error tracking with structured logging
 
-Click "Train Model Now"
+### Performance Monitoring
 
-System will:
+- Database query optimization
+- API response time monitoring
+- Cache hit rate tracking
+- Scrapy success rate monitoring
 
-Gather historical data
+## Security
 
-Train new model
+### Implemented Security Measures
 
-Validate accuracy
+- JWT authentication with refresh tokens
+- Input validation and sanitization
+- SQL injection prevention
+- XSS protection
+- CSRF protection
+- Rate limiting
+- HTTPS enforcement
 
-Replace old model if better
+### Security Checklist
 
-Training Data Requirements
-Minimum 10 completed projects
+- [ ] Regular security updates
+- [ ] API key rotation
+- [ ] Database encryption
+- [ ] Backup encryption
+- [ ] Access log monitoring
 
-Should cover multiple:
+## Contributing
 
-Sectors
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
-Project types
+### Development Guidelines
 
-Locations
+- Follow PEP 8 style guide
+- Write comprehensive tests
+- Update documentation
+- Keep files under 200 lines
+- Use meaningful commit messages
 
-Actual costs must be recorded
+## License
 
-API Endpoints
-1. Estimate Project Cost
-Endpoint: POST /api/projects/<project_id>/estimate/
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Parameters:
+## Support
 
-method (optional): "ml", "scraping", or "auto"
+For support and questions:
 
-Response:
-
-json
-{
-  "status": "success",
-  "estimated_cost": 125000.00,
-  "method_used": "ml",
-  "confidence": 0.85,
-  "project_id": "a1b2c3d4..."
-}
-2. Train Model
-Endpoint: POST /api/projects/train-model/
-
-Response:
-
-json
-{
-  "status": "success",
-  "message": "Model training completed",
-  "training_samples": 42,
-  "mean_absolute_error": 1200.50
-}
-3. Update Market Prices
-Endpoint: POST /api/projects/<project_id>/update-prices/
-
-Response:
-
-json
-{
-  "status": "success",
-  "message": "Market prices updated",
-  "resources_updated": 8,
-  "labor_rates_updated": 3,
-  "new_estimated_cost": 128750.00
-}
-Admin Functions
-Sector Management
-Add/Edit sectors to improve categorization
-
-Set default resource categories per sector
-
-Configure price sources per sector
-
-Scraper Configuration
-Manage scraping:
-
-URLs
-
-Selectors
-
-Rate limits
-
-Add new scrapers for:
-
-New sectors
-
-Geographic regions
-
-Specialized materials/services
-
-Model Monitoring
-View model performance:
-
-Accuracy metrics
-
-Confidence trends
-
-Feature importance
-
-Compare model versions
-
-Roll back to previous model if needed
-
-Best Practices
-For Accurate ML Estimates
-Complete projects properly:
-
-Set final "Actual Cost"
-
-Mark status as "Completed"
-
-Provide detailed project information:
-
-Correct sector
-
-Specific project type
-
-Precise location
-
-Regularly train the model
-
-For Effective Scraping
-Name resources specifically:
-
-"2x4 Lumber" instead of "Wood"
-
-"Senior Python Developer" instead of "Programmer"
-
-Include locations when possible
-
-Verify scraped prices periodically
-
-General Recommendations
-Start with Auto estimation, then refine
-
-Use scraped prices as baseline for negotiations
-
-Combine methods for critical projects:
-
-Get ML estimate
-
-Get scraped estimate
-
-Compare and analyze differences
-
-Document manual overrides with reasons
-
-Troubleshooting
-Common Issues
-1. Low Confidence Estimates
-
-Cause: Insufficient similar projects in history
-
-Solution:
-
-Add more completed projects
-
-Try web scraping method
-
-Adjust sector/project type to closest match
-
-2. Failed Price Scraping
-
-Cause: Website changes or geoblocking
-
-Solution:
-
-Try manual price update later
-
-Use alternative resource names
-
-Contact admin to update scraper config
-
-3. Inaccurate ML Predictions
-
-Cause: Outdated model or data drift
-
-Solution:
-
-Retrain model
-
-Check for outliers in training data
-
-Verify sector assignments
-
-Advanced Features
-Custom Scrapers
-For specialized needs, admins can:
-
-Add new scraper classes
-
-Configure site-specific parsing
-
-Set up proxies for geographic targeting
-
-Sector-Specific Models
-Option to train separate models for:
-
-High-volume sectors
-
-Unique cost structures
-
-Geographic regions
+- Create an issue on GitHub
+- Email: support@toplorgical.com
+- Documentation: https://docs.toplorgical.com
